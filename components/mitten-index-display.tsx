@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { MittenIndexScore } from "@/lib/types/mitten-index";
 import { getDressingRecommendation } from "@/lib/scoring/mitten-index";
+import { cn } from "@/lib/utils";
 
 interface MittenIndexDisplayProps {
   data: MittenIndexScore & {
@@ -57,6 +58,32 @@ export function MittenIndexDisplay({ data, locationName }: MittenIndexDisplayPro
           )}
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Score Gauge Visualization */}
+          <div className="relative w-full max-w-xs mx-auto">
+            <div className="relative h-8 bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className={cn(
+                  "h-full transition-all duration-1000 ease-out rounded-full",
+                  score < 20
+                    ? "bg-green-500"
+                    : score < 40
+                    ? "bg-blue-500"
+                    : score < 60
+                    ? "bg-cyan-500"
+                    : score < 80
+                    ? "bg-orange-500"
+                    : "bg-red-500"
+                )}
+                style={{ width: `${score}%` }}
+              />
+            </div>
+            <div className="flex justify-between text-xs text-muted-foreground mt-1">
+              <span>0</span>
+              <span>50</span>
+              <span>100</span>
+            </div>
+          </div>
+
           <div className="flex items-center justify-center gap-4">
             <span className="text-6xl">{categoryEmojis[category]}</span>
             <div>

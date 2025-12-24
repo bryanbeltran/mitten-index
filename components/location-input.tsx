@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPin, Navigation } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface LocationInputProps {
   onLocationChange: (lat: number, lon: number, locationName?: string) => void;
@@ -16,6 +18,7 @@ export function LocationInput({ onLocationChange, isLoading }: LocationInputProp
   const [zipCode, setZipCode] = useState("");
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [isGeocoding, setIsGeocoding] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const handleGetCurrentLocation = () => {
     if (!navigator.geolocation) {
@@ -47,21 +50,43 @@ export function LocationInput({ onLocationChange, isLoading }: LocationInputProp
     );
   };
 
+  const validateZipCode = (zip: string): string | null => {
+    const trimmed = zip.trim();
+    if (!trimmed) {
+      return "Please enter a ZIP code";
+    }
+    const zipPattern = /^\d{5}(-\d{4})?$/;
+    if (!zipPattern.test(trimmed)) {
+      return "Please enter a valid 5-digit ZIP code (e.g., 55401)";
+    }
+    return null;
+  };
+
+  const handleZipCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setZipCode(value);
+    // Clear error when user starts typing
+    if (validationError) {
+      setValidationError(null);
+    }
+    // Validate on blur or when user stops typing
+    if (value.trim()) {
+      const error = validateZipCode(value);
+      setValidationError(error);
+    }
+  };
+
   const handleZipCodeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const zip = zipCode.trim();
 
-    if (!zip) {
-      toast.error("Please enter a ZIP code");
+    const error = validateZipCode(zip);
+    if (error) {
+      setValidationError(error);
       return;
     }
 
-    // Basic validation for US ZIP codes (5 digits, optionally with -4 extension)
-    const zipPattern = /^\d{5}(-\d{4})?$/;
-    if (!zipPattern.test(zip)) {
-      toast.error("Please enter a valid 5-digit ZIP code (e.g., 55401)");
-      return;
-    }
+    setValidationError(null);
 
     setIsGeocoding(true);
     try {
@@ -130,10 +155,8 @@ export function LocationInput({ onLocationChange, isLoading }: LocationInputProp
         </div>
 
         <form onSubmit={handleZipCodeSubmit} className="space-y-3">
-          <div>
-            <label htmlFor="zipcode" className="text-sm text-muted-foreground">
-              ZIP Code
-            </label>
+          <div className="space-y-2">
+            <Label htmlFor="zipcode">ZIP Code</Label>
             <Input
               id="zipcode"
               type="text"
@@ -141,13 +164,30 @@ export function LocationInput({ onLocationChange, isLoading }: LocationInputProp
               pattern="[0-9]{5}(-[0-9]{4})?"
               placeholder="55401"
               value={zipCode}
-              onChange={(e) => setZipCode(e.target.value)}
+              onChange={handleZipCodeChange}
+              onBlur={() => {
+                if (zipCode.trim()) {
+                  const error = validateZipCode(zipCode);
+                  setValidationError(error);
+                }
+              }}
               disabled={isLoading || isGeocoding}
               maxLength={10}
+              className={cn(
+                validationError && "border-red-500 focus-visible:ring-red-500"
+              )}
+              aria-invalid={!!validationError}
+              aria-describedby={validationError ? "zipcode-error" : "zipcode-help"}
             />
-            <p className="text-xs text-muted-foreground mt-1">
-              Enter a 5-digit US ZIP code
-            </p>
+            {validationError ? (
+              <p id="zipcode-error" className="text-xs text-red-600 mt-1">
+                {validationError}
+              </p>
+            ) : (
+              <p id="zipcode-help" className="text-xs text-muted-foreground mt-1">
+                Enter a 5-digit US ZIP code
+              </p>
+            )}
           </div>
           <Button
             type="submit"

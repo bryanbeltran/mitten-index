@@ -103,10 +103,34 @@ export default function Home() {
         )}
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
-            <p className="font-medium">Error</p>
-            <p className="text-sm">{error}</p>
-          </div>
+          <Card className="border-red-200 bg-red-50">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-3">
+                <div className="flex-1">
+                  <p className="font-medium text-red-800 mb-1">Error</p>
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setError(null);
+                    // Retry with last location if available
+                    if (data?.location) {
+                      handleLocationChange(
+                        data.location.latitude,
+                        data.location.longitude,
+                        locationName || undefined
+                      );
+                    }
+                  }}
+                  className="border-red-300 text-red-700 hover:bg-red-100"
+                >
+                  Try Again
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         {data && !isLoading && (
