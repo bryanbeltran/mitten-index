@@ -145,12 +145,12 @@ export function LocationInput({ onLocationChange, isLoading }: LocationInputProp
           {isGettingLocation ? "Getting location..." : "Use Current Location"}
         </Button>
 
-        <div className="relative">
+        <div className="relative my-4">
           <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-gray-300" />
+            <span className="w-full border-t" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white dark:bg-gray-950 px-2 text-muted-foreground">Or</span>
+            <span className="bg-card px-2 text-muted-foreground">Or</span>
           </div>
         </div>
 
