@@ -58,19 +58,33 @@ export function LocationInput({ onLocationChange, isLoading }: LocationInputProp
       const response = await fetch(`/api/geocode?q=${encodeURIComponent(zip)}`);
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Location not found");
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.error || 
+          (response.status === 404 
+            ? "ZIP code not found. Please verify the ZIP code is correct."
+            : response.status === 400
+            ? "Invalid ZIP code format. Please enter a 5-digit US ZIP code."
+            : "Unable to find location. Please try again.");
+        throw new Error(errorMessage);
       }
 
       const coordinates = await response.json();
+      
+      // Validate coordinates
+      if (!coordinates.latitude || !coordinates.longitude) {
+        throw new Error("Invalid response from server");
+      }
+
       onLocationChange(coordinates.latitude, coordinates.longitude);
       setIsGeocoding(false);
     } catch (error) {
-      alert(
-        error instanceof Error
-          ? error.message
-          : "Unable to find location for that ZIP code. Please try another."
-      );
+      const errorMessage = error instanceof Error
+        ? error.message
+        : "Unable to find location for that ZIP code. Please try another.";
+      
+      // Don't show alert for user-initiated errors, but log them
+      console.error("Geocoding error:", error);
+      alert(errorMessage);
       setIsGeocoding(false);
     }
   };

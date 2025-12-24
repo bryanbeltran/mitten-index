@@ -22,20 +22,54 @@ export default function Home() {
   const handleLocationChange = async (lat: number, lon: number) => {
     setIsLoading(true);
     setError(null);
+    setData(null);
 
     try {
-      const response = await fetch(`/api/mitten-index?lat=${lat}&lon=${lon}`);
+      const response = await fetch(`/api/mitten-index?lat=${lat}&lon=${lon}`, {
+        // Add timeout
+        signal: AbortSignal.timeout(30000), // 30 second timeout
+      });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to fetch Mitten Index");
+        const errorData = await response.json().catch(() => ({}));
+        let errorMessage = errorData.error || "Failed to fetch Mitten Index";
+        
+        // Provide user-friendly error messages
+        if (response.status === 400) {
+          errorMessage = "Invalid location. Please try a different ZIP code.";
+        } else if (response.status === 404) {
+          errorMessage = "Location not found. Please verify the ZIP code.";
+        } else if (response.status === 502 || response.status === 503) {
+          errorMessage = "Weather service is temporarily unavailable. Please try again later.";
+        } else if (response.status >= 500) {
+          errorMessage = "Server error. Please try again later.";
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const result: MittenIndexResponse = await response.json();
+      
+      // Validate response data
+      if (!result.score && result.score !== 0) {
+        throw new Error("Invalid response from server");
+      }
+
       setData(result);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      let errorMessage = "An error occurred";
+      
+      if (err instanceof Error) {
+        if (err.name === "AbortError") {
+          errorMessage = "Request timed out. Please check your connection and try again.";
+        } else {
+          errorMessage = err.message;
+        }
+      }
+      
+      setError(errorMessage);
       setData(null);
+      console.error("Error fetching Mitten Index:", err);
     } finally {
       setIsLoading(false);
     }
