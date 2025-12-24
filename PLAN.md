@@ -30,6 +30,7 @@
 - [ ] Historical trends and charts
 - [ ] Shareable daily cards (textable to your mom)
 - [ ] User tolerance profiles (because Duluth cold hits different than St. Paul)
+  - Consider: time of day, gender, height, weight, age
 - [ ] Multiple saved locations
 - [ ] Weather alerts for extreme conditions
 - [ ] Detailed breakdown of scoring factors
@@ -104,13 +105,25 @@
 
 ## 🧮 Scoring Algorithm Notes
 
-### Factors to Consider:
+### Current Factors (MVP):
 - **Temperature** (obviously)
 - **Wind chill** (is your face gonna fall off?)
 - **Humidity** (dry cold vs bone-deep chill)
 - **Sunlight or cloud cover** (is the sun helping, or hiding?)
-- **Recent weather shifts** (sudden 40° drops mess you up)
+- **Recent weather shifts** (sudden 40° drops mess you up) - *Not yet implemented*
 - **Perceived cold** (how Minnesotans *feel* it, not just measure it)
+
+### Future Personalization Factors (To Consider):
+- **Current time** - Time of day affects temperature perception (morning vs evening)
+- **Gender** - Biological differences in cold tolerance
+- **Height** - Affects body surface area and heat loss
+- **Weight** - Body composition affects insulation and cold tolerance
+- **Age** - Cold tolerance changes with age
+
+These could be used to:
+- Create personalized "tolerance profiles" (as mentioned in roadmap)
+- Adjust recommendations based on individual factors
+- Provide more accurate "feels like" scores for specific users
 
 ### Scoring Scale Ideas:
 - 0-100 scale where higher = more brutal?
