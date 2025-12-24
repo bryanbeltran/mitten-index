@@ -19,24 +19,17 @@ In short, is it “sweater weather” or “better cancel your plans”?
 
 If you live where your eyelashes can freeze, you know the weather app doesn’t tell the whole story. A sunny 5°F might feel fine. A windy 25°F might feel like death. This tool helps you prep your layers, errands, and attitude accordingly — so you don’t get caught in a bad mood in a bad jacket.
 
-## ⚙️ Tech Stack (Planned)
+## ⚙️ Tech Stack
 
 - **Next.js 15** with App Router
 - **TypeScript**
 - **Tailwind CSS**
-- **shadcn/ui** for components with nice mittens
-- **Weather API** (Open-Meteo, Tomorrow.io, etc.)
-- **Supabase** (for logging trends, not storing ice)
-- **Deployed on Vercel** (where it's always sunny and warm... unlike here)
+- **shadcn/ui** for components
+- **Weather API** integration
+- **Supabase** for data logging
+- **Deployed on Vercel**
 
-## 🚀 Roadmap
-
-- [ ] Basic MVP score by location
-- [ ] Heuristic scoring engine
-- [ ] UI showing today’s index + dressing tips (“you’ll want long underwear”)
-- [ ] Compare today's score to yesterday and last year
-- [ ] Shareable daily cards (textable to your mom)
-- [ ] User tolerance profiles (because Duluth cold hits different than St. Paul)
+_For detailed planning notes, see [PLAN.md](./PLAN.md)_
 
 ## 📦 Local Development
 
