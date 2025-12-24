@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { geocodeLocation, geocodeZipCode } from "@/lib/api/geocoding";
+import { geocodeLocation, geocodeZipCode, type GeocodingLocation } from "@/lib/api/geocoding";
 import { GeocodingError, ValidationError } from "@/lib/errors";
 
 /**

@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPin, Navigation } from "lucide-react";
+import { toast } from "sonner";
 
 interface LocationInputProps {
-  onLocationChange: (lat: number, lon: number) => void;
+  onLocationChange: (lat: number, lon: number, locationName?: string) => void;
   isLoading?: boolean;
 }
 
@@ -18,7 +19,7 @@ export function LocationInput({ onLocationChange, isLoading }: LocationInputProp
 
   const handleGetCurrentLocation = () => {
     if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser");
+      toast.error("Geolocation is not supported by your browser");
       return;
     }
 
@@ -26,12 +27,21 @@ export function LocationInput({ onLocationChange, isLoading }: LocationInputProp
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-        onLocationChange(latitude, longitude);
+        onLocationChange(latitude, longitude, "Current Location");
         setIsGettingLocation(false);
+        toast.success("Location found!");
       },
       (error) => {
         console.error("Error getting location:", error);
-        alert("Unable to get your location. Please enter a ZIP code.");
+        let errorMessage = "Unable to get your location. Please enter a ZIP code.";
+        if (error.code === error.PERMISSION_DENIED) {
+          errorMessage = "Location permission denied. Please enter a ZIP code.";
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+          errorMessage = "Location unavailable. Please enter a ZIP code.";
+        } else if (error.code === error.TIMEOUT) {
+          errorMessage = "Location request timed out. Please enter a ZIP code.";
+        }
+        toast.error(errorMessage);
         setIsGettingLocation(false);
       }
     );
@@ -42,14 +52,14 @@ export function LocationInput({ onLocationChange, isLoading }: LocationInputProp
     const zip = zipCode.trim();
 
     if (!zip) {
-      alert("Please enter a ZIP code");
+      toast.error("Please enter a ZIP code");
       return;
     }
 
     // Basic validation for US ZIP codes (5 digits, optionally with -4 extension)
     const zipPattern = /^\d{5}(-\d{4})?$/;
     if (!zipPattern.test(zip)) {
-      alert("Please enter a valid 5-digit ZIP code (e.g., 55401)");
+      toast.error("Please enter a valid 5-digit ZIP code (e.g., 55401)");
       return;
     }
 
@@ -68,23 +78,28 @@ export function LocationInput({ onLocationChange, isLoading }: LocationInputProp
         throw new Error(errorMessage);
       }
 
-      const coordinates = await response.json();
+      const locationData = await response.json();
       
       // Validate coordinates
-      if (!coordinates.latitude || !coordinates.longitude) {
+      if (!locationData.latitude || !locationData.longitude) {
         throw new Error("Invalid response from server");
       }
 
-      onLocationChange(coordinates.latitude, coordinates.longitude);
+      // Format location name
+      const locationName = locationData.name 
+        ? `${locationData.name}${locationData.admin1 ? `, ${locationData.admin1}` : ""}`
+        : undefined;
+
+      onLocationChange(locationData.latitude, locationData.longitude, locationName);
       setIsGeocoding(false);
+      toast.success(locationName ? `Found ${locationName}` : "Location found!");
     } catch (error) {
       const errorMessage = error instanceof Error
         ? error.message
         : "Unable to find location for that ZIP code. Please try another.";
       
-      // Don't show alert for user-initiated errors, but log them
       console.error("Geocoding error:", error);
-      alert(errorMessage);
+      toast.error(errorMessage);
       setIsGeocoding(false);
     }
   };
@@ -155,11 +170,15 @@ export function LocationInput({ onLocationChange, isLoading }: LocationInputProp
                 try {
                   const response = await fetch("/api/geocode?q=55401");
                   if (response.ok) {
-                    const coords = await response.json();
-                    onLocationChange(coords.latitude, coords.longitude);
+                    const locationData = await response.json();
+                    const locationName = locationData.name 
+                      ? `${locationData.name}${locationData.admin1 ? `, ${locationData.admin1}` : ""}`
+                      : undefined;
+                    onLocationChange(locationData.latitude, locationData.longitude, locationName);
                   }
                 } catch (error) {
                   console.error(error);
+                  toast.error("Failed to load location");
                 } finally {
                   setIsGeocoding(false);
                 }
@@ -177,11 +196,15 @@ export function LocationInput({ onLocationChange, isLoading }: LocationInputProp
                 try {
                   const response = await fetch("/api/geocode?q=55802");
                   if (response.ok) {
-                    const coords = await response.json();
-                    onLocationChange(coords.latitude, coords.longitude);
+                    const locationData = await response.json();
+                    const locationName = locationData.name 
+                      ? `${locationData.name}${locationData.admin1 ? `, ${locationData.admin1}` : ""}`
+                      : undefined;
+                    onLocationChange(locationData.latitude, locationData.longitude, locationName);
                   }
                 } catch (error) {
                   console.error(error);
+                  toast.error("Failed to load location");
                 } finally {
                   setIsGeocoding(false);
                 }
@@ -199,11 +222,15 @@ export function LocationInput({ onLocationChange, isLoading }: LocationInputProp
                 try {
                   const response = await fetch("/api/geocode?q=60601");
                   if (response.ok) {
-                    const coords = await response.json();
-                    onLocationChange(coords.latitude, coords.longitude);
+                    const locationData = await response.json();
+                    const locationName = locationData.name 
+                      ? `${locationData.name}${locationData.admin1 ? `, ${locationData.admin1}` : ""}`
+                      : undefined;
+                    onLocationChange(locationData.latitude, locationData.longitude, locationName);
                   }
                 } catch (error) {
                   console.error(error);
+                  toast.error("Failed to load location");
                 } finally {
                   setIsGeocoding(false);
                 }

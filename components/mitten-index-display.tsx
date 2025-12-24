@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { MittenIndexScore } from "@/lib/types/mitten-index";
+import { getDressingRecommendation } from "@/lib/scoring/mitten-index";
 
 interface MittenIndexDisplayProps {
   data: MittenIndexScore & {
@@ -14,6 +15,7 @@ interface MittenIndexDisplayProps {
       cloudCover: number;
     };
   };
+  locationName?: string | null;
 }
 
 const categoryColors: Record<string, string> = {
@@ -40,8 +42,9 @@ function kmhToMph(kmh: number): number {
   return kmh * 0.621371;
 }
 
-export function MittenIndexDisplay({ data }: MittenIndexDisplayProps) {
+export function MittenIndexDisplay({ data, locationName }: MittenIndexDisplayProps) {
   const { score, category, factors, recommendation, weather } = data;
+  const detailedRecommendation = getDressingRecommendation(category, score);
 
   return (
     <div className="space-y-6">
@@ -49,6 +52,9 @@ export function MittenIndexDisplay({ data }: MittenIndexDisplayProps) {
       <Card className="text-center">
         <CardHeader>
           <CardTitle className="text-2xl">Mitten Index</CardTitle>
+          {locationName && (
+            <p className="text-sm text-muted-foreground mt-2">{locationName}</p>
+          )}
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-center gap-4">
@@ -65,6 +71,43 @@ export function MittenIndexDisplay({ data }: MittenIndexDisplayProps) {
             {category.charAt(0).toUpperCase() + category.slice(1)}
           </Badge>
           <p className="text-lg font-medium mt-4">{recommendation}</p>
+        </CardContent>
+      </Card>
+
+      {/* Detailed Dressing Recommendations */}
+      <Card>
+        <CardHeader>
+          <CardTitle>What to Wear</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <h4 className="font-semibold mb-2">Layers:</h4>
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              {detailedRecommendation.layers.map((layer, index) => (
+                <li key={index} className="text-muted-foreground">{layer}</li>
+              ))}
+            </ul>
+          </div>
+          {detailedRecommendation.accessories.length > 0 && (
+            <div>
+              <h4 className="font-semibold mb-2">Accessories:</h4>
+              <ul className="list-disc list-inside space-y-1 text-sm">
+                {detailedRecommendation.accessories.map((accessory, index) => (
+                  <li key={index} className="text-muted-foreground">{accessory}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {detailedRecommendation.tips.length > 0 && (
+            <div>
+              <h4 className="font-semibold mb-2">Tips:</h4>
+              <ul className="list-disc list-inside space-y-1 text-sm">
+                {detailedRecommendation.tips.map((tip, index) => (
+                  <li key={index} className="text-muted-foreground">{tip}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </CardContent>
       </Card>
 

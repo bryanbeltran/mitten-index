@@ -11,6 +11,7 @@ interface MittenIndexResponse extends MittenIndexScore {
   location: {
     latitude: number;
     longitude: number;
+    name?: string;
   };
 }
 
@@ -18,8 +19,10 @@ export default function Home() {
   const [data, setData] = useState<MittenIndexResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [locationName, setLocationName] = useState<string | null>(null);
 
-  const handleLocationChange = async (lat: number, lon: number) => {
+  const handleLocationChange = async (lat: number, lon: number, name?: string) => {
+    setLocationName(name || null);
     setIsLoading(true);
     setError(null);
     setData(null);
@@ -118,6 +121,7 @@ export default function Home() {
                 cloudCover: data.weather.cloudCover,
               },
             }}
+            locationName={locationName || data.location.name}
           />
         )}
       </div>

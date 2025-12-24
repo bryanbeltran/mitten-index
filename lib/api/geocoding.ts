@@ -11,6 +11,14 @@ export interface GeocodingResult {
   admin1?: string; // State/Province
 }
 
+export interface GeocodingLocation {
+  latitude: number;
+  longitude: number;
+  name: string;
+  country: string;
+  admin1?: string; // State/Province
+}
+
 export interface GeocodingResponse {
   results?: GeocodingResult[];
 }
@@ -18,12 +26,12 @@ export interface GeocodingResponse {
 /**
  * Geocode a zip code or city name to coordinates
  * @param query - ZIP code or city name
- * @returns Coordinates
+ * @returns Location with coordinates and name
  * @throws GeocodingError if geocoding fails
  */
 export async function geocodeLocation(
   query: string
-): Promise<LocationCoordinates> {
+): Promise<GeocodingLocation> {
   const searchQuery = query.trim();
   
   if (!searchQuery) {
@@ -65,6 +73,9 @@ export async function geocodeLocation(
     return {
       latitude: result.latitude,
       longitude: result.longitude,
+      name: result.name,
+      country: result.country,
+      admin1: result.admin1,
     };
   } catch (error) {
     if (error instanceof GeocodingError || error instanceof ValidationError) {
@@ -86,7 +97,7 @@ export async function geocodeLocation(
  */
 export async function geocodeZipCode(
   zipCode: string
-): Promise<LocationCoordinates> {
+): Promise<GeocodingLocation> {
   // Remove any non-numeric characters
   const cleanZip = zipCode.replace(/\D/g, "");
   
