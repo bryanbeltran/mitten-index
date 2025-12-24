@@ -59,11 +59,11 @@ export function MittenIndexDisplay({ data, locationName }: MittenIndexDisplayPro
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Score Gauge Visualization */}
-          <div className="relative w-full max-w-xs mx-auto">
-            <div className="relative h-8 bg-gray-200 rounded-full overflow-hidden">
+          <div className="w-full max-w-md mx-auto space-y-2">
+            <div className="w-full bg-gray-200 rounded-full h-8 overflow-hidden border border-gray-300">
               <div
                 className={cn(
-                  "h-full transition-all duration-1000 ease-out rounded-full",
+                  "h-8 rounded-full transition-all duration-1000 ease-out",
                   score < 20
                     ? "bg-green-500"
                     : score < 40
@@ -74,10 +74,15 @@ export function MittenIndexDisplay({ data, locationName }: MittenIndexDisplayPro
                     ? "bg-orange-500"
                     : "bg-red-500"
                 )}
-                style={{ width: `${score}%` }}
+                style={{ width: `${Math.min(Math.max(score, 0), 100)}%` }}
+                role="progressbar"
+                aria-valuenow={score}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label={`Mitten Index score: ${score} out of 100`}
               />
             </div>
-            <div className="flex justify-between text-xs text-muted-foreground mt-1">
+            <div className="flex justify-between text-xs text-muted-foreground px-1">
               <span>0</span>
               <span>50</span>
               <span>100</span>
