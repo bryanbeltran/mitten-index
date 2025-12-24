@@ -1,0 +1,178 @@
+"use client";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import type { MittenIndexScore } from "@/lib/types/mitten-index";
+
+interface MittenIndexDisplayProps {
+  data: MittenIndexScore & {
+    weather?: {
+      temperature: number;
+      apparentTemperature: number;
+      windSpeed: number;
+      relativeHumidity: number;
+      cloudCover: number;
+    };
+  };
+}
+
+const categoryColors: Record<string, string> = {
+  pleasant: "bg-green-100 text-green-800 border-green-300",
+  chilly: "bg-blue-100 text-blue-800 border-blue-300",
+  cold: "bg-cyan-100 text-cyan-800 border-cyan-300",
+  brutal: "bg-orange-100 text-orange-800 border-orange-300",
+  arctic: "bg-red-100 text-red-800 border-red-300",
+};
+
+const categoryEmojis: Record<string, string> = {
+  pleasant: "😊",
+  chilly: "🧊",
+  cold: "🥶",
+  brutal: "🧤",
+  arctic: "❄️",
+};
+
+function celsiusToFahrenheit(celsius: number): number {
+  return (celsius * 9) / 5 + 32;
+}
+
+function kmhToMph(kmh: number): number {
+  return kmh * 0.621371;
+}
+
+export function MittenIndexDisplay({ data }: MittenIndexDisplayProps) {
+  const { score, category, factors, recommendation, weather } = data;
+
+  return (
+    <div className="space-y-6">
+      {/* Main Score Display */}
+      <Card className="text-center">
+        <CardHeader>
+          <CardTitle className="text-2xl">Mitten Index</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-center gap-4">
+            <span className="text-6xl">{categoryEmojis[category]}</span>
+            <div>
+              <div className="text-7xl font-bold">{score}</div>
+              <div className="text-sm text-muted-foreground">out of 100</div>
+            </div>
+          </div>
+          <Badge
+            className={`text-lg px-4 py-2 ${categoryColors[category]}`}
+            variant="outline"
+          >
+            {category.charAt(0).toUpperCase() + category.slice(1)}
+          </Badge>
+          <p className="text-lg font-medium mt-4">{recommendation}</p>
+        </CardContent>
+      </Card>
+
+      {/* Weather Conditions */}
+      {weather && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Current Conditions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <div className="text-sm text-muted-foreground">Temperature</div>
+                <div className="text-2xl font-bold">
+                  {Math.round(celsiusToFahrenheit(weather.temperature))}°F
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Feels like {Math.round(celsiusToFahrenheit(weather.apparentTemperature))}°F
+                </div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground">Wind Speed</div>
+                <div className="text-2xl font-bold">
+                  {Math.round(kmhToMph(weather.windSpeed))} mph
+                </div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground">Humidity</div>
+                <div className="text-2xl font-bold">
+                  {Math.round(weather.relativeHumidity)}%
+                </div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground">Cloud Cover</div>
+                <div className="text-2xl font-bold">
+                  {Math.round(weather.cloudCover)}%
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Contributing Factors */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Contributing Factors</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <FactorBar
+            label="Temperature"
+            value={factors.temperature}
+            weight={40}
+          />
+          <FactorBar
+            label="Wind Chill"
+            value={factors.windChill}
+            weight={30}
+          />
+          <FactorBar label="Humidity" value={factors.humidity} weight={15} />
+          <FactorBar
+            label="Cloud Cover"
+            value={factors.cloudCover}
+            weight={10}
+          />
+          <FactorBar
+            label="Sunlight"
+            value={factors.sunlight}
+            weight={5}
+            isBonus
+          />
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function FactorBar({
+  label,
+  value,
+  weight,
+  isBonus = false,
+}: {
+  label: string;
+  value: number;
+  weight: number;
+  isBonus?: boolean;
+}) {
+  const percentage = Math.round(value);
+  const contribution = Math.round((value * weight) / 100);
+
+  return (
+    <div className="space-y-1">
+      <div className="flex justify-between text-sm">
+        <span className="font-medium">{label}</span>
+        <span className="text-muted-foreground">
+          {isBonus ? `-${contribution}` : `+${contribution}`} points
+        </span>
+      </div>
+      <div className="w-full bg-gray-200 rounded-full h-2.5">
+        <div
+          className={`h-2.5 rounded-full ${
+            isBonus ? "bg-green-500" : "bg-blue-500"
+          }`}
+          style={{ width: `${Math.min(percentage, 100)}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
