@@ -3,11 +3,16 @@
 import { useState } from "react";
 import { MittenIndexDisplay } from "@/components/mitten-index-display";
 import { LocationInput } from "@/components/location-input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { MittenIndexScore } from "@/lib/types/mitten-index";
 import type { WeatherData } from "@/lib/types/weather";
 
 interface MittenIndexResponse extends MittenIndexScore {
-  weather: WeatherData;
+  weather: WeatherData & {
+    windDirection?: number;
+    time?: string;
+  };
   location: {
     latitude: number;
     longitude: number;
@@ -94,11 +99,31 @@ export default function Home() {
         />
 
         {isLoading && (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-            <p className="mt-4 text-muted-foreground">
-              Calculating Mitten Index...
-            </p>
+          <div className="space-y-6">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-center gap-4">
+                    <Skeleton className="h-16 w-16 rounded-full" />
+                    <Skeleton className="h-20 w-32" />
+                  </div>
+                  <Skeleton className="h-8 w-full max-w-md mx-auto" />
+                  <Skeleton className="h-6 w-24 mx-auto" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="space-y-2">
+                      <Skeleton className="h-4 w-20" />
+                      <Skeleton className="h-8 w-16" />
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </div>
         )}
 
@@ -133,6 +158,20 @@ export default function Home() {
           </Card>
         )}
 
+        {!data && !isLoading && !error && (
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center py-12 space-y-4">
+                <div className="text-6xl">🧤</div>
+                <h3 className="text-xl font-semibold">Get Your Mitten Index</h3>
+                <p className="text-muted-foreground max-w-md mx-auto">
+                  Enter a ZIP code or use your current location to see how brutal it really feels out there.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {data && !isLoading && (
           <MittenIndexDisplay
             data={{
@@ -141,11 +180,23 @@ export default function Home() {
                 temperature: data.weather.temperature,
                 apparentTemperature: data.weather.apparentTemperature,
                 windSpeed: data.weather.windSpeed,
+                windDirection: data.weather.windDirection,
                 relativeHumidity: data.weather.relativeHumidity,
                 cloudCover: data.weather.cloudCover,
+                time: data.weather.time,
               },
             }}
             locationName={locationName || data.location.name}
+            onRefresh={() => {
+              if (data.location) {
+                handleLocationChange(
+                  data.location.latitude,
+                  data.location.longitude,
+                  locationName || undefined
+                );
+              }
+            }}
+            isRefreshing={isLoading}
           />
         )}
       </div>
