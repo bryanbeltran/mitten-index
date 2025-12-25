@@ -3,10 +3,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
 import type { MittenIndexScore } from "@/lib/types/mitten-index";
 import { getDressingRecommendation } from "@/lib/scoring/mitten-index";
 import { cn } from "@/lib/utils";
-import { RefreshCw, Cloud, CloudSun, Sun, CloudRain, Snowflake } from "lucide-react";
 
 interface MittenIndexDisplayProps {
   data: MittenIndexScore & {
@@ -14,15 +14,13 @@ interface MittenIndexDisplayProps {
       temperature: number;
       apparentTemperature: number;
       windSpeed: number;
-      windDirection?: number;
       relativeHumidity: number;
       cloudCover: number;
-      time?: string;
     };
   };
   locationName?: string | null;
+  timestamp?: string;
   onRefresh?: () => void;
-  isRefreshing?: boolean;
 }
 
 const categoryColors: Record<string, string> = {
@@ -49,41 +47,26 @@ function kmhToMph(kmh: number): number {
   return kmh * 0.621371;
 }
 
-function getWindDirection(degrees: number): string {
-  const directions = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
-  const index = Math.round(degrees / 22.5) % 16;
-  return directions[index];
-}
-
-function getWeatherIcon(cloudCover: number, temperature: number): { icon: React.ReactNode; label: string } {
-  if (cloudCover < 25) {
-    return { icon: <Sun className="h-6 w-6 text-yellow-500" />, label: "Sunny" };
-  } else if (cloudCover < 50) {
-    return { icon: <CloudSun className="h-6 w-6 text-blue-400" />, label: "Partly Cloudy" };
-  } else if (cloudCover < 75) {
-    return { icon: <Cloud className="h-6 w-6 text-gray-400" />, label: "Cloudy" };
-  } else {
-    return { icon: <Cloud className="h-6 w-6 text-gray-500" />, label: "Overcast" };
-  }
-}
-
-function formatTimestamp(time: string): string {
-  const date = new Date(time);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  
-  if (diffMins < 1) return "Just now";
-  if (diffMins < 60) return `${diffMins} min ago`;
-  const diffHours = Math.floor(diffMins / 60);
-  if (diffHours < 24) return `${diffHours} hr ago`;
-  return date.toLocaleDateString();
-}
-
-export function MittenIndexDisplay({ data, locationName, onRefresh, isRefreshing }: MittenIndexDisplayProps) {
+export function MittenIndexDisplay({ data, locationName, timestamp, onRefresh }: MittenIndexDisplayProps) {
   const { score, category, factors, recommendation, weather } = data;
   const detailedRecommendation = getDressingRecommendation(category, score);
-  const weatherIcon = weather ? getWeatherIcon(weather.cloudCover, weather.temperature) : null;
+
+  const formatTimestamp = (ts?: string) => {
+    if (!ts) return null;
+    try {
+      const date = new Date(ts);
+      const now = new Date();
+      const diffMs = now.getTime() - date.getTime();
+      const diffMins = Math.floor(diffMs / 60000);
+      
+      if (diffMins < 1) return "Just now";
+      if (diffMins < 60) return `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`;
+      
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } catch {
+      return null;
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -91,30 +74,27 @@ export function MittenIndexDisplay({ data, locationName, onRefresh, isRefreshing
       <Card className="text-center">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <CardTitle className="text-2xl">Mitten Index</CardTitle>
-              {locationName && (
-                <p className="text-sm text-muted-foreground mt-2">{locationName}</p>
-              )}
-              {weather?.time && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  Updated {formatTimestamp(weather.time)}
-                </p>
-              )}
-            </div>
+            <CardTitle className="text-2xl">Mitten Index</CardTitle>
             {onRefresh && (
               <Button
                 variant="ghost"
-                size="icon"
+                size="sm"
                 onClick={onRefresh}
-                disabled={isRefreshing}
-                className="ml-4"
+                className="h-8 w-8 p-0"
                 aria-label="Refresh weather data"
               >
-                <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
+                <RefreshCw className="h-4 w-4" />
               </Button>
             )}
           </div>
+          {locationName && (
+            <p className="text-sm text-muted-foreground mt-2">{locationName}</p>
+          )}
+          {timestamp && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Updated {formatTimestamp(timestamp)}
+            </p>
+          )}
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Score Gauge Visualization */}
@@ -211,10 +191,7 @@ export function MittenIndexDisplay({ data, locationName, onRefresh, isRefreshing
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
-                <div className="flex items-center gap-2 mb-1">
-                  {weatherIcon?.icon}
-                  <div className="text-sm text-muted-foreground">Temperature</div>
-                </div>
+                <div className="text-sm text-muted-foreground">Temperature</div>
                 <div className="text-2xl font-bold">
                   {Math.round(celsiusToFahrenheit(weather.temperature))}°F
                 </div>
@@ -223,15 +200,10 @@ export function MittenIndexDisplay({ data, locationName, onRefresh, isRefreshing
                 </div>
               </div>
               <div>
-                <div className="text-sm text-muted-foreground">Wind</div>
+                <div className="text-sm text-muted-foreground">Wind Speed</div>
                 <div className="text-2xl font-bold">
                   {Math.round(kmhToMph(weather.windSpeed))} mph
                 </div>
-                {weather.windDirection !== undefined && (
-                  <div className="text-xs text-muted-foreground">
-                    {getWindDirection(weather.windDirection)}
-                  </div>
-                )}
               </div>
               <div>
                 <div className="text-sm text-muted-foreground">Humidity</div>
