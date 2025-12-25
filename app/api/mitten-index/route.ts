@@ -39,11 +39,20 @@ export async function GET(request: NextRequest) {
     // Calculate Mitten Index
     const mittenIndex = calculateMittenIndex(weatherData);
 
-    return NextResponse.json({
+    // Add cache headers (5 minutes)
+    const response = NextResponse.json({
       ...mittenIndex,
       weather: weatherData,
       location,
     });
+
+    // Set cache headers for client-side caching
+    response.headers.set(
+      "Cache-Control",
+      "public, s-maxage=300, stale-while-revalidate=600"
+    );
+
+    return response;
   } catch (error) {
     if (error instanceof ValidationError) {
       return NextResponse.json(
