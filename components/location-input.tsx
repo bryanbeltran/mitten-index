@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +19,7 @@ export function LocationInput({ onLocationChange, isLoading }: LocationInputProp
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleGetCurrentLocation = () => {
     if (!navigator.geolocation) {
@@ -62,17 +63,36 @@ export function LocationInput({ onLocationChange, isLoading }: LocationInputProp
     return null;
   };
 
+  // Debounced validation
+  useEffect(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    if (!zipCode.trim()) {
+      setValidationError(null);
+      return;
+    }
+
+    // Debounce validation by 500ms
+    debounceTimerRef.current = setTimeout(() => {
+      const error = validateZipCode(zipCode);
+      setValidationError(error);
+    }, 500);
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [zipCode]);
+
   const handleZipCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setZipCode(value);
-    // Clear error when user starts typing
+    // Clear error immediately when user starts typing
     if (validationError) {
       setValidationError(null);
-    }
-    // Validate on blur or when user stops typing
-    if (value.trim()) {
-      const error = validateZipCode(value);
-      setValidationError(error);
     }
   };
 
