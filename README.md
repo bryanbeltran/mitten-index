@@ -29,7 +29,7 @@ If you live where your eyelashes can freeze, you know the weather app doesn’t 
 - **Supabase** for data logging
 - **Deployed on Vercel**
 
-_For detailed planning notes, see [PLAN.md](./PLAN.md)_
+_For detailed planning notes, see `.prompt-context/` folder (local development only)_
 
 ## 📦 Local Development
 

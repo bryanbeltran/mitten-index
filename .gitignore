@@ -52,3 +52,6 @@ Thumbs.db
 logs
 *.log
 
+# Prompt context and planning docs (local only)
+.prompt-context/
+
